@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grocery Purchase App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-4">
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold text-green-700">Grocery Purchase App</h1>
+  </header>
+
+  <main class="w-full max-w-4xl bg-white rounded-lg shadow p-6">
+    <section>
+      <h2 class="text-xl font-semibold mb-4">Available Grocery Items</h2>
+      <div id="items-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- Grocery items will be rendered here -->
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h2 class="text-xl font-semibold mb-4">Purchase Summary</h2>
+      <div id="purchase-summary" class="bg-gray-100 rounded p-4 min-h-[150px]">
+        <p class="text-gray-600">No items selected.</p>
+      </div>
+      <button id="purchase-btn" class="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition disabled:opacity-50" disabled>
+        Purchase
+      </button>
+    </section>
+  </main>
+
+  <script>
+    const groceryItems = [
+      { id: 1, name: 'Apples', price: 1.5, icon: 'fa-apple-whole' },
+      { id: 2, name: 'Bananas', price: 0.75, icon: 'fa-banana' },
+      { id: 3, name: 'Carrots', price: 0.9, icon: 'fa-carrot' },
+      { id: 4, name: 'Bread', price: 2.5, icon: 'fa-bread-slice' },
+      { id: 5, name: 'Milk', price: 1.2, icon: 'fa-cow' },
+      { id: 6, name: 'Eggs (dozen)', price: 3.0, icon: 'fa-egg' }
+    ];
+
+    const itemsListEl = document.getElementById('items-list');
+    const purchaseSummaryEl = document.getElementById('purchase-summary');
+    const purchaseBtn = document.getElementById('purchase-btn');
+
+    function renderItems() {
+      itemsListEl.innerHTML = '';
+      groceryItems.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'border rounded p-4 flex flex-col items-center text-center shadow-sm';
+
+        const iconEl = document.createElement('i');
+        iconEl.className = `fas ${item.icon} text-4xl text-green-600 mb-2`;
+        itemCard.appendChild(iconEl);
+
+        const nameEl = document.createElement('h3');
+        nameEl.textContent = item.name;
+        nameEl.className = 'font-semibold mb-1';
+        itemCard.appendChild(nameEl);
+
+        const priceEl = document.createElement('p');
+        priceEl.textContent = `$${item.price.toFixed(2)}`;
+        priceEl.className = 'text-gray-700 mb-2';
+        itemCard.appendChild(priceEl);
+
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'number';
+        qtyInput.min = 0;
+        qtyInput.value = 0;
+        qtyInput.className = 'w-20 text-center border rounded px-2 py-1';
+        qtyInput.addEventListener('input', () => {
+          if (qtyInput.value < 0) qtyInput.value = 0;
+          updatePurchaseSummary();
+        });
+        itemCard.appendChild(qtyInput);
+
+        itemsListEl.appendChild(itemCard);
+      });
+    }
+
+    function updatePurchaseSummary() {
+      const selectedItems = [];
+      let total = 0;
+      const itemCards = itemsListEl.children;
+      for (let i = 0; i < itemCards.length; i++) {
+        const qty = parseInt(itemCards[i].querySelector('input').value, 10);
+        if (qty > 0) {
+          const item = groceryItems[i];
+          const subtotal = item.price * qty;
+          selectedItems.push({ ...item, qty, subtotal });
+          total += subtotal;
+        }
+      }
+
+      if (selectedItems.length === 0) {
+        purchaseSummaryEl.innerHTML = '<p class="text-gray-600">No items selected.</p>';
+        purchaseBtn.disabled = true;
+        return;
+      }
+
+      purchaseBtn.disabled = false;
+
+      let summaryHTML = '<ul class="divide-y divide-gray-300">';
+      selectedItems.forEach(item => {
+        summaryHTML += `
+          <li class="py-2 flex justify-between">
+            <span>${item.name} x ${item.qty}</span>
+            <span>$${item.subtotal.toFixed(2)}</span>
+          </li>
+        `;
+      });
+      summaryHTML += `
+        <li class="pt-2 font-semibold flex justify-between border-t border-gray-400">
+          <span>Total</span>
+          <span>$${total.toFixed(2)}</span>
+        </li>
+      </ul>`;
+
+      purchaseSummaryEl.innerHTML = summaryHTML;
+    }
+
+    purchaseBtn.addEventListener('click', () => {
+      alert('Thank you for your purchase!');
+      // Reset quantities
+      const itemCards = itemsListEl.children;
+      for (let i = 0; i < itemCards.length; i++) {
+        itemCards[i].querySelector('input').value = 0;
+      }
+      updatePurchaseSummary();
+      purchaseBtn.disabled = true;
+    });
+
+    renderItems();
+  </script>
+</body>
+</html>
